@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import tw from 'tailwind-react-native-classnames';
+import { Alert } from 'react-native';
+
 
 const API_URL = 'http://192.168.227.192:3000'; // Replace with your local IP
 
@@ -44,6 +46,42 @@ export default function DashboardScreen() {
     checkUserRole();
     fetchMovies();
   }, []);
+
+  const handleDeleteMovie = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Unauthorized', 'You must be logged in as admin.');
+        return;
+      }
+  
+      Alert.alert('Delete Movie', 'Are you sure you want to delete this movie?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await axios.delete(`${API_URL}/movies/delete/${id}`, {
+                data: { token }, // ✅ Send token in request body
+              });
+  
+              setMovies((prevMovies) =>
+                prevMovies.filter((movie) => movie._id !== id)
+              );
+  
+              Alert.alert('Deleted', 'Movie has been removed.');
+            } catch (err) {
+              Alert.alert('Error', err.response?.data?.error || 'Failed to delete movie');
+            }
+          },
+        },
+      ]);
+    } catch (err) {
+      Alert.alert('Error', 'Something went wrong');
+    }
+  };
+  
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
@@ -90,6 +128,27 @@ export default function DashboardScreen() {
                 </Text>
                 <Text style={tw`text-gray-400`}>📅 {movie.releaseDate}</Text>
                 <Text style={tw`text-gray-300 mt-2`}>{movie.description}</Text>
+
+                {role === 'admin' && (
+                  <View style={tw`flex-row justify-between mt-5`}>
+                    <TouchableOpacity
+                      style={tw`bg-green-600 p-2 rounded-lg`}
+                      onPress={() => router.push(`/EditMovie?id=${movie._id}`)}
+                    >
+                      <Text style={tw`text-white font-semibold text-xs`}>
+                        ✏ Edit
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={tw`bg-red-600 p-2 rounded-lg`}
+                      onPress={() => handleDeleteMovie(movie._id)}
+                    >
+                      <Text style={tw`text-white font-semibold text-xs`}>
+                        🗑 Delete
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           ))

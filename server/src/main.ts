@@ -35,14 +35,21 @@ const MovieSchema = new mongoose.Schema(
 // ✅ UsersService
 @Injectable()
 class UsersService {
-  constructor(@InjectModel('User') private readonly userModel: mongoose.Model<any>) {}
+  constructor(
+    @InjectModel('User') private readonly userModel: mongoose.Model<any>
+  ) {}
 
   async register(name: string, email: string, password: string) {
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) throw new Error('User already exists');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new this.userModel({ name, email, password: hashedPassword, role: 'user' });
+    const user = new this.userModel({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'user',
+    });
 
     await user.save();
     return { message: 'User registered successfully' };
@@ -67,7 +74,9 @@ class UsersService {
 // ✅ MoviesService
 @Injectable()
 class MoviesService {
-  constructor(@InjectModel('Movie') private readonly movieModel: mongoose.Model<any>) {}
+  constructor(
+    @InjectModel('Movie') private readonly movieModel: mongoose.Model<any>
+  ) {}
 
   async addMovie(
     name: string,
@@ -77,7 +86,14 @@ class MoviesService {
     videoUrl: string,
     description: string
   ) {
-    const movie = new this.movieModel({ name, cast, releaseDate, imageUrl, videoUrl, description });
+    const movie = new this.movieModel({
+      name,
+      cast,
+      releaseDate,
+      imageUrl,
+      videoUrl,
+      description,
+    });
     await movie.save();
     return { message: 'Movie added successfully' };
   }
@@ -89,12 +105,22 @@ class MoviesService {
   async getMovieById(id: string) {
     return await this.movieModel.findById(id);
   }
+
+  async updateMovie(id, data) {
+    return this.movieModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async deleteMovie(id) {
+    return await this.movieModel.findByIdAndDelete(id);
+  }
 }
 
 // ✅ AppModule
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/movies'),
+    MongooseModule.forRoot(
+      process.env.MONGO_URI || 'mongodb://localhost:27017/movies'
+    ),
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Movie', schema: MovieSchema },
@@ -133,7 +159,9 @@ async function bootstrap() {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+        return res
+          .status(400)
+          .json({ error: 'Email and password are required' });
       }
       const result = await usersService.login(email, password);
       res.json(result);
@@ -145,22 +173,39 @@ async function bootstrap() {
   // ✅ Add Movie API (Admin Only)
   expressApp.post('/movies/add', async (req, res) => {
     try {
-      const { name, cast, releaseDate, imageUrl, videoUrl, description, token } = req.body;
-  
+      const {
+        name,
+        cast,
+        releaseDate,
+        imageUrl,
+        videoUrl,
+        description,
+        token,
+      } = req.body;
+
       // Verify JWT Token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'SECRET_KEY') as jwt.JwtPayload;
-  
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'SECRET_KEY'
+      ) as jwt.JwtPayload;
+
       if (!decoded || typeof decoded !== 'object' || decoded.role !== 'admin') {
         return res.status(403).json({ error: 'Unauthorized' });
       }
-  
-      const result = await moviesService.addMovie(name, cast, releaseDate, imageUrl, videoUrl, description);
+
+      const result = await moviesService.addMovie(
+        name,
+        cast,
+        releaseDate,
+        imageUrl,
+        videoUrl,
+        description
+      );
       res.json(result);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
   });
-  
 
   expressApp.post('/verify-token', async (req, res) => {
     try {
@@ -168,13 +213,16 @@ async function bootstrap() {
       if (!token) {
         return res.status(400).json({ error: 'Token is required' });
       }
-  
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'SECRET_KEY') as jwt.JwtPayload;
-  
+
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'SECRET_KEY'
+      ) as jwt.JwtPayload;
+
       if (!decoded || typeof decoded !== 'object' || !decoded.role) {
         return res.status(401).json({ error: 'Invalid token' });
       }
-  
+
       res.json({ role: decoded.role });
     } catch (error) {
       res.status(401).json({ error: 'Invalid or expired token' });
@@ -202,7 +250,54 @@ async function bootstrap() {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   });
-  
+
+  expressApp.put('/movies/update/:id', async (req, res) => {
+    try {
+      const { token, ...updateData } = req.body;
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'SECRET_KEY'
+      ) as jwt.JwtPayload;
+      if (!decoded || typeof decoded !== 'object' || decoded.role !== 'admin')
+        return res.status(403).json({ error: 'Unauthorized' });
+
+      const updatedMovie = await moviesService.updateMovie(
+        req.params.id,
+        updateData
+      );
+      if (!updatedMovie)
+        return res.status(404).json({ error: 'Movie not found' });
+
+      res.json(updatedMovie);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ✅ Delete Movie API (Admin Only)
+  expressApp.delete('/movies/delete/:id', async (req, res) => {
+    try {
+      const { token } = req.body; // Extract token from request body
+
+      // Verify JWT Token
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'SECRET_KEY'
+      ) as jwt.JwtPayload;
+      if (!decoded || typeof decoded !== 'object' || decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+
+      const deletedMovie = await moviesService.deleteMovie(req.params.id);
+      if (!deletedMovie) {
+        return res.status(404).json({ error: 'Movie not found' });
+      }
+
+      res.json({ message: 'Movie deleted successfully' });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
 
   await app.listen(3000);
   console.log(`🚀 Server running on http://localhost:3000`);

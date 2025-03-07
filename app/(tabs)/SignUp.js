@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import tw from 'twrnc';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const API_URL = 'http://192.168.50.192:3000'; // Replace with your backend IP
+const API_URL = 'http://192.168.227.192:3000'; // Replace with your backend IP
 
 export default function RegisterScreen() {
   const router = useRouter();

@@ -15,8 +15,11 @@ export default function LandingPage() {
 
   return (
     <ImageBackground
-      source={{ uri: 'https://wallpapercave.com/wp/wp4056407.jpg' }} // Replace with a movie-themed background
-      style={tw`flex-1 justify-center items-center`}
+      source={{
+        uri: 'https://wallpapercave.com/wp/wp4056407.jpg',
+      }}
+      style={tw`w-full h-full flex-1 justify-center items-center`}
+      resizeMode="cover"
     >
       {/* Overlay Gradient for Better Readability */}
       <LinearGradient

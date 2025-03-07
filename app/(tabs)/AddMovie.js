@@ -12,7 +12,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import tw from 'twrnc';
 
-const API_URL = 'http://192.168.50.192:3000'; // Replace with your backend IP
+const API_URL = 'http://192.168.227.192:3000'; // Replace with your backend IP
 
 export default function AddMovieScreen() {
   const router = useRouter();

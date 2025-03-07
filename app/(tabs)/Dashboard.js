@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import tw from 'tailwind-react-native-classnames';
 
-const API_URL = 'http://192.168.50.192:3000'; // Replace with your local IP
+const API_URL = 'http://192.168.227.192:3000'; // Replace with your local IP
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -53,18 +53,24 @@ export default function DashboardScreen() {
   return (
     <View style={tw`flex-1 bg-gray-900 p-4`}>
       {/* Title */}
-      <Text style={tw`text-white text-2xl font-bold text-center my-4`}>
-        🎬 Movie Dashboard
-      </Text>
-      /* Admin Button */
-      {role === 'admin' && (
-        <TouchableOpacity
-          style={tw`bg-blue-600 py-2 px-4 rounded-lg self-center my-2`}
-          onPress={() => router.push('/AddMovie')}
-        >
-          <Text style={tw`text-white font-semibold text-lg`}>➕ Add Movie</Text>
-        </TouchableOpacity>
-      )}
+      <View style={tw`flex-row justify-between items-center my-4`}>
+        {/* Movie Dashboard Title */}
+        <Text style={tw`text-white text-2xl font-bold`}>
+          🎬 Movie Dashboard
+        </Text>
+
+        {/* Admin Button */}
+        {role === 'admin' && (
+          <TouchableOpacity
+            style={tw`bg-blue-600 py-2 px-4 rounded-lg`}
+            onPress={() => router.push('/AddMovie')}
+          >
+            <Text style={tw`text-white font-semibold text-base`}>
+              ➕ Add Movie
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
       /* Movies List */
       <ScrollView style={tw`mt-4`}>
         {movies.length > 0 ? (

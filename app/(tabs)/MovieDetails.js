@@ -5,7 +5,7 @@ import axios from 'axios';
 import tw from 'twrnc';
 import { WebView } from 'react-native-webview';
 
-const API_URL = 'http://192.168.50.192:3000'; // Replace with your backend IP
+const API_URL = 'http://192.168.227.192:3000'; // Replace with your backend IP
 
 export default function MovieDetailsScreen() {
   const { id } = useLocalSearchParams(); // Get the movie ID from the URL params
@@ -45,7 +45,11 @@ export default function MovieDetailsScreen() {
   }
 
   return (
-    <ScrollView style={tw`flex-1 bg-gray-900 p-4`}>
+    <ScrollView 
+      style={tw`flex-1 bg-gray-900`} 
+      contentContainerStyle={tw`p-4 pb-10`} // ✅ Adds spacing and smooth scrolling
+      showsVerticalScrollIndicator={false} // ✅ Hides scrollbar for a clean look
+    >
       {/* Movie Poster */}
       <Image source={{ uri: movie.imageUrl }} style={tw`w-full h-60 rounded-lg`} resizeMode="cover" />
 
@@ -61,7 +65,7 @@ export default function MovieDetailsScreen() {
       </Text>
 
       {/* Description */}
-      <Text style={tw`text-gray-300 mt-2`}>{movie.description}</Text>
+      <Text style={tw`text-gray-300 mt-2 leading-relaxed`}>{movie.description}</Text>
 
       {/* Trailer */}
       <Text style={tw`text-white text-xl font-semibold mt-4 mb-2`}>🎥 Watch Trailer</Text>

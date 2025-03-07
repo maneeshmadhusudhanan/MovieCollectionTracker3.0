@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, ImageBackground, Alert } from 'react-native';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  ImageBackground,
+  Alert,
+} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -17,7 +24,10 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/users/login`, { email, password });
+      const res = await axios.post(`${API_URL}/users/login`, {
+        email,
+        password,
+      });
 
       await AsyncStorage.setItem('token', res.data.token);
       Alert.alert('✅ Success', 'Login Successful');
@@ -42,7 +52,9 @@ export default function LoginScreen() {
 
       {/* Login Box */}
       <View style={tw`bg-gray-900/80 p-6 rounded-xl w-80`}>
-        <Text style={tw`text-white text-3xl font-bold text-center mb-6`}>🔑 Login</Text>
+        <Text style={tw`text-white text-3xl font-bold text-center mb-6`}>
+          🔑 Login
+        </Text>
 
         <TextInput
           style={tw`bg-gray-800 text-white p-3 rounded-lg mb-4`}
@@ -63,7 +75,9 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity
-          style={tw`bg-blue-600 py-3 rounded-lg mt-2 ${loading ? 'opacity-50' : ''}`}
+          style={tw`bg-blue-600 py-3 rounded-lg mt-2 ${
+            loading ? 'opacity-50' : ''
+          }`}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -76,7 +90,10 @@ export default function LoginScreen() {
           style={tw`mt-4`}
           onPress={() => router.push('/SignUp')}
         >
-          <Text style={tw`text-gray-400 text-center`}>Don't have an account? <Text style={tw`text-blue-400 font-semibold`}>Sign Up</Text></Text>
+          <Text style={tw`text-gray-400 text-center`}>
+            Don't have an account?{' '}
+            <Text style={tw`text-blue-400 font-semibold`}>Sign Up</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
